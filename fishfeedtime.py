@@ -50,7 +50,7 @@ def sockets(state):
 
 def button_state():
     # If button not pressed (Open)
-    if GPIO.input(BUTTON):
+    if (GPIO.input(BUTTON)):
         return "Open"
     else
         return "Closed"
