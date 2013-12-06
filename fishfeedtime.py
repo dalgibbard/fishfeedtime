@@ -10,8 +10,8 @@ BUTTON = 17
 # LED Pin if present...
 LED = False
 LEDPIN = 21
-# Pin connect to 434MHz transmit Data Line.
-TRANS = 18
+# Pin connect to 434MHz transmit Data Line. -- NOT CONFIGURABLE, connect to *** PIN26 // GPIO7 ***
+##TRANS = 18
 # Seconds to turn everything off for on button push:
 OFFTIME = 300
 # Do we have a buzzer here?
@@ -19,10 +19,9 @@ BUZZER = False
 # If "True" - which GPIO Pin to use it?
 BUZPIN = 23
 # Where can the https://github.com/dmcg/raspberry-strogonanoff script be found?
-switchscript = "./strogonanoff_sender.py"
+switchscript = "./switch"
 # List of dictionaries detailing channel and buttons for the desired controlled sockets:
-#SOCKETS = [ {"channel": "1", "button":"1"}, {"channel": "1", "button":"1"}, {"channel": "1", "button":"2"}, {"channel": "3", "button":"4"},]
-SOCKETS = [ {"channel": "1", "button":"1"} ]
+SOCKETS = [ {"socket": "1"}, {"socket": "2"}, {"socket": "3"}, {"socket": "4"} ]
 
 
 ## Should setup the GPIO Pins Here / Import Libs
@@ -41,9 +40,9 @@ def sockets(state):
     if state == "on" or state == "off":
         print("Switching Sockets " + str(state))
         for a in SOCKETS:
-            chan = str(a['channel'])
-            butt = str(a['button'])
-            switchcmd = "/usr/local/bin/strogonanoff_sender.py --channel " + str(chan) + " --button " + str(butt) + " --gpio " + str(TRANS) + str(state)
+            sock = str(a['socket'])
+            switchcmd = str(switchscript) + " " + str(sock) + " " + str(state)
+            print(switchcmd)
             os.system(switchcmd)
     else:
         print("Invalid state sent to sockets(): " + str(state))
