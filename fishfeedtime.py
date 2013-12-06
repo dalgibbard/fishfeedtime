@@ -94,6 +94,7 @@ def run_timer():
     fulltime = int(OFFTIME - delay)
     warntime = int(fulltime - WARNTIME)
     for x in (0, fulltime):
+        print("Count: " + str(count))
         if button_state() == "Closed":
             print("Button Push Override Detected.")
             break
@@ -109,9 +110,12 @@ def run_timer():
             sound_buzzer()
             # Increase by 2s, as buzzer takes some time :)
             count = count + 2
+            time.sleep(1)
         else:
+            print("Nothing to do...")
             count = count + 1
             time.sleep(1)
+
     sockets("on")
     ledswitch("off")
 
