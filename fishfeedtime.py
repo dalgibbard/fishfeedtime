@@ -91,12 +91,17 @@ def run_timer():
     # Insert a small time delay to ensure that devices are not immediately switched back on if button is held down.
     delay = 10
     time.sleep(delay)
-    for x in (0, (int(OFFTIME) - delay)):
+    fulltime = int(OFFTIME - delay)
+    warntime = int(fulltime - WARNTIME)
+    for x in (0, fulltime):
         if button_state() == "Closed":
+            print("Button Push Override Detected.")
             break
-        if count == int(OFFTIME):
+        if count == fulltime:
+            print("Duration completed.")
             break
-        if count == (int(OFFTIME) - int(WARNTIME)):
+        if count == warntime:
+            print("Warning Time Reached.")
             sound_buzzer()
             time.sleep(0.3)
 	    sound_buzzer()
