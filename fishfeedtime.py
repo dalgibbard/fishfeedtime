@@ -8,20 +8,21 @@
 # Pin with button circuit GPIO Pullup
 BUTTON = 17
 # LED Pin if present...
-LED = True
+LED = False
 LEDPIN = 21
 # Pin connect to 434MHz transmit Data Line.
 TRANS = 18
 # Seconds to turn everything off for on button push:
 OFFTIME = 300
 # Do we have a buzzer here?
-BUZZER = True
+BUZZER = False
 # If "True" - which GPIO Pin to use it?
 BUZPIN = 23
 # Where can the https://github.com/dmcg/raspberry-strogonanoff script be found?
 switchscript = "./strogonanoff_sender.py"
 # List of dictionaries detailing channel and buttons for the desired controlled sockets:
-SOCKETS = [ {"channel": "1", "button":"1"}, {"channel": "1", "button":"1"}, {"channel": "1", "button":"2"}, {"channel": "3", "button":"4"},]
+#SOCKETS = [ {"channel": "1", "button":"1"}, {"channel": "1", "button":"1"}, {"channel": "1", "button":"2"}, {"channel": "3", "button":"4"},]
+SOCKETS = [ {"channel": "1", "button":"1"} ]
 
 
 ## Should setup the GPIO Pins Here / Import Libs
@@ -66,7 +67,7 @@ def sound_buzzer():
         print("Buzzer not configured.")
 
 def run_timer():
-    sockets(off)
+    sockets("off")
     count = 0
     # Insert a small time delay to ensure that devices are not immediately switched back on if button is held down.
     delay = 10
@@ -79,7 +80,7 @@ def run_timer():
         else:
             count = count + 1
             time.sleep(1)
-    sockets(on)
+    sockets("on")
 
 ## Actual run
 # Check stragonanoff exists:
@@ -92,7 +93,7 @@ try:
             run_timer()
 except KeyboardInterrupt:
     print("Keyboard Interrupt. Enabling sockets.")
-    sockets(on)
+    sockets("on")
     GPIO.cleanup()
     print("Exiting...")
     sys.exit(0)
