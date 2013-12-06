@@ -14,6 +14,8 @@ LEDPIN = 24
 ##TRANS = 18
 # Seconds to turn everything off for on button push:
 OFFTIME = 300
+# Time (s) before OFFTIME to sound alert.
+WARNTIME = 5
 # Do we have a buzzer here?
 BUZZER = True
 # If "True" - which GPIO Pin to use it?
@@ -41,7 +43,6 @@ GPIO.setup(BUTTON, GPIO.IN)
 
 
 def sockets(state):
-    sound_buzzer()
     if state == "on" or state == "off":
         print("Switching Sockets " + str(state))
         for a in SOCKETS:
@@ -49,7 +50,6 @@ def sockets(state):
             switchcmd = str(switchscript) + " " + str(sock) + " " + str(state)
             print(switchcmd)
             os.system(switchcmd)
-        sound_buzzer()
     else:
         print("Invalid state sent to sockets(): " + str(state))
         raise
@@ -78,13 +78,14 @@ def sound_buzzer():
         # Make some noise!
         print("Beep")
         GPIO.output(BUZPIN, True)
-        time.sleep(0.25)
+        time.sleep(0.1)
         GPIO.output(BUZPIN, False)
     else:
         print("Buzzer not configured.")
 
 def run_timer():
     ledswitch("on")
+    sound_buzzer()
     sockets("off")
     count = 0
     # Insert a small time delay to ensure that devices are not immediately switched back on if button is held down.
@@ -95,6 +96,14 @@ def run_timer():
             break
         if count == int(OFFTIME):
             break
+        if count == (int(OFFTIME) - int(WARNTIME)):
+            sound_buzzer()
+            time.sleep(0.3)
+	    sound_buzzer()
+	    time.sleep(0.3)
+            sound_buzzer()
+            # Increase by 2s, as buzzer takes some time :)
+            count = count + 2
         else:
             count = count + 1
             time.sleep(1)
@@ -113,7 +122,7 @@ try:
 except KeyboardInterrupt:
     print("Keyboard Interrupt. Enabling sockets.")
     sound_buzzer()
-    time.sleep(0.5)
+    time.sleep(0.2)
     sound_buzzer()
     sockets("on")
     GPIO.cleanup()
