@@ -9,7 +9,7 @@
 BUTTON = 17
 # LED Pin if present...
 LED = False
-LEDPIN = 21
+LEDPIN = 18
 # Pin connect to 434MHz transmit Data Line. -- NOT CONFIGURABLE, connect to *** PIN26 // GPIO7 ***
 ##TRANS = 18
 # Seconds to turn everything off for on button push:
@@ -54,7 +54,18 @@ def button_state():
         return "Open"
     else:
         return "Closed"
-
+def ledswitch(ledstate):
+    if LED = True:
+        if ledstate == "on":
+            GPIO.output(LEDPIN, True)
+        elif ledstate == "off":
+            GPIO.output(LEDPIN, False)
+        else:
+            print("Invalid state passed to ledswitch: " + str(ledstate))
+            raise
+    else:
+        print("LED not configured.")
+     
 def sound_buzzer():
     if BUZZER == True:
         # Make some noise!
@@ -67,6 +78,7 @@ def sound_buzzer():
 
 def run_timer():
     sockets("off")
+    ledswitch("on")
     count = 0
     # Insert a small time delay to ensure that devices are not immediately switched back on if button is held down.
     delay = 10
@@ -80,6 +92,7 @@ def run_timer():
             count = count + 1
             time.sleep(1)
     sockets("on")
+    ledswitch("off")
 
 ## Actual run
 # Check stragonanoff exists:
