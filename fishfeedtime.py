@@ -17,7 +17,7 @@ OFFTIME = 30
 # Time (s) before OFFTIME to sound alert.
 WARNTIME = 5
 # Do we have a buzzer here?
-BUZZER = False
+BUZZER = True
 # If "True" - which GPIO Pin to use it?
 BUZPIN = 23
 # Where can the https://github.com/dmcg/raspberry-strogonanoff script be found?
@@ -25,8 +25,8 @@ switchscript = "./switch"
 # List of dictionaries detailing channel and buttons for the desired controlled sockets:
 SOCKETS = [ {"socket": "1"}, {"socket": "2"}, {"socket": "3"}, {"socket": "4"} ]
 
-# Set verbosity
-VERBOSE = False
+# Set verbosity ## True//False
+VERBOSE = True
 
 ## Import needed modules
 import time, os, sys
@@ -127,6 +127,7 @@ def run_timer():
             count = count + 1
             time.sleep(1)
 
+    sound_buzzer()
     sockets("on")
     ledswitch("off")
 
