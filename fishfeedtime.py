@@ -53,7 +53,7 @@ def button_state():
     # If button not pressed (Open)
     if (GPIO.input(BUTTON)):
         return "Open"
-    else
+    else:
         return "Closed"
 
 def sound_buzzer():
@@ -75,7 +75,7 @@ def run_timer():
     for x in (0, (int(OFFTIME) - delay)):
         if button_state() == "Closed":
             break
-        if count = int(OFFTIME):
+        if count == int(OFFTIME):
             break
         else:
             count = count + 1
@@ -84,7 +84,7 @@ def run_timer():
 
 ## Actual run
 # Check stragonanoff exists:
-if not os.exists(switchscript):
+if not os.path.isfile(switchscript):
     print("Failed to locate " + str(switchscript))
     sys.exit(1)
 try:
