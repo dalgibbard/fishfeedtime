@@ -8,14 +8,14 @@
 # Pin with button circuit GPIO Pullup
 BUTTON = 17
 # LED Pin if present...
-LED = False
-LEDPIN = 18
+LED = True
+LEDPIN = 24
 # Pin connect to 434MHz transmit Data Line. -- NOT CONFIGURABLE, connect to *** PIN26 // GPIO7 ***
 ##TRANS = 18
 # Seconds to turn everything off for on button push:
 OFFTIME = 300
 # Do we have a buzzer here?
-BUZZER = False
+BUZZER = True
 # If "True" - which GPIO Pin to use it?
 BUZPIN = 23
 # Where can the https://github.com/dmcg/raspberry-strogonanoff script be found?
@@ -23,13 +23,15 @@ switchscript = "./switch"
 # List of dictionaries detailing channel and buttons for the desired controlled sockets:
 SOCKETS = [ {"socket": "1"}, {"socket": "2"}, {"socket": "3"}, {"socket": "4"} ]
 
+## Import needed modules
+import time, os, sys
+import RPi.GPIO as GPIO
+
 ## Detect early on that we're running with root permissions!
 if not os.geteuid() == 0:
         sys.exit('Script must run as root')
 
-## Should setup the GPIO Pins Here / Import Libs
-import time, os, sys
-import RPi.GPIO as GPIO
+# Setup GPIO
 GPIO.setmode(GPIO.BCM)
 if BUZZER == True:
     GPIO.setup(BUZPIN, GPIO.OUT, False)
@@ -47,6 +49,7 @@ def sockets(state):
             switchcmd = str(switchscript) + " " + str(sock) + " " + str(state)
             print(switchcmd)
             os.system(switchcmd)
+        sound_buzzer()
     else:
         print("Invalid state sent to sockets(): " + str(state))
         raise
@@ -57,8 +60,9 @@ def button_state():
         return "Open"
     else:
         return "Closed"
+
 def ledswitch(ledstate):
-    if LED = True:
+    if LED == True:
         if ledstate == "on":
             GPIO.output(LEDPIN, True)
         elif ledstate == "off":
@@ -74,14 +78,14 @@ def sound_buzzer():
         # Make some noise!
         print("Beep")
         GPIO.output(BUZPIN, True)
-        time.sleep(0.8)
+        time.sleep(0.25)
         GPIO.output(BUZPIN, False)
     else:
         print("Buzzer not configured.")
 
 def run_timer():
-    sockets("off")
     ledswitch("on")
+    sockets("off")
     count = 0
     # Insert a small time delay to ensure that devices are not immediately switched back on if button is held down.
     delay = 10
@@ -108,6 +112,9 @@ try:
             run_timer()
 except KeyboardInterrupt:
     print("Keyboard Interrupt. Enabling sockets.")
+    sound_buzzer()
+    time.sleep(0.5)
+    sound_buzzer()
     sockets("on")
     GPIO.cleanup()
     print("Exiting...")
