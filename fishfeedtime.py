@@ -13,17 +13,20 @@ LEDPIN = 24
 # Pin connect to 434MHz transmit Data Line. -- NOT CONFIGURABLE, connect to *** PIN26 // GPIO7 ***
 ##TRANS = 18
 # Seconds to turn everything off for on button push:
-OFFTIME = 300
+OFFTIME = 30
 # Time (s) before OFFTIME to sound alert.
 WARNTIME = 5
 # Do we have a buzzer here?
-BUZZER = True
+BUZZER = False
 # If "True" - which GPIO Pin to use it?
 BUZPIN = 23
 # Where can the https://github.com/dmcg/raspberry-strogonanoff script be found?
 switchscript = "./switch"
 # List of dictionaries detailing channel and buttons for the desired controlled sockets:
 SOCKETS = [ {"socket": "1"}, {"socket": "2"}, {"socket": "3"}, {"socket": "4"} ]
+
+# Set verbosity
+VERBOSE = False
 
 ## Import needed modules
 import time, os, sys
@@ -44,11 +47,13 @@ GPIO.setup(BUTTON, GPIO.IN)
 
 def sockets(state):
     if state == "on" or state == "off":
-        print("Switching Sockets " + str(state))
+        if VERBOSE == True:
+            print("Switching Sockets " + str(state))
         for a in SOCKETS:
             sock = str(a['socket'])
             switchcmd = str(switchscript) + " " + str(sock) + " " + str(state)
-            print(switchcmd)
+            if VERBOSE == True:
+                print(switchcmd)
             os.system(switchcmd)
     else:
         print("Invalid state sent to sockets(): " + str(state))
@@ -71,17 +76,20 @@ def ledswitch(ledstate):
             print("Invalid state passed to ledswitch: " + str(ledstate))
             raise
     else:
-        print("LED not configured.")
+        if VERBOSE == True:
+            print("LED not configured.")
      
 def sound_buzzer():
     if BUZZER == True:
         # Make some noise!
-        print("Beep")
+        if VERBOSE == True:
+            print("Beep")
         GPIO.output(BUZPIN, True)
         time.sleep(0.1)
         GPIO.output(BUZPIN, False)
     else:
-        print("Buzzer not configured.")
+        if VERBOSE == True:
+            print("Buzzer not configured.")
 
 def run_timer():
     ledswitch("on")
@@ -93,16 +101,20 @@ def run_timer():
     time.sleep(delay)
     fulltime = int(OFFTIME - delay)
     warntime = int(fulltime - WARNTIME)
-    for x in (0, fulltime):
-        print("Count: " + str(count))
+    while count <= fulltime:
+        if VERBOSE == True:
+            print("Count: " + str(count))
         if button_state() == "Closed":
-            print("Button Push Override Detected.")
+            if VERBOSE == True:
+                print("Button Push Override Detected.")
             break
         if count == fulltime:
-            print("Duration completed.")
+            if VERBOSE == True:
+                print("Duration completed.")
             break
         if count == warntime:
-            print("Warning Time Reached.")
+            if VERBOSE == True:
+                print("Warning Time Reached.")
             sound_buzzer()
             time.sleep(0.3)
 	    sound_buzzer()
@@ -112,7 +124,6 @@ def run_timer():
             count = count + 2
             time.sleep(1)
         else:
-            print("Nothing to do...")
             count = count + 1
             time.sleep(1)
 
@@ -129,11 +140,12 @@ try:
         if button_state() == "Closed":
             run_timer()
 except KeyboardInterrupt:
-    print("Keyboard Interrupt. Enabling sockets.")
+    print("\n\nKeyboard Interrupt. Ensuring sockets are Enabled...")
     sound_buzzer()
     time.sleep(0.2)
     sound_buzzer()
     sockets("on")
+    ledswitch("off")
     GPIO.cleanup()
     print("Exiting...")
     sys.exit(0)
