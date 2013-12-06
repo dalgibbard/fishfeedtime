@@ -23,6 +23,9 @@ switchscript = "./switch"
 # List of dictionaries detailing channel and buttons for the desired controlled sockets:
 SOCKETS = [ {"socket": "1"}, {"socket": "2"}, {"socket": "3"}, {"socket": "4"} ]
 
+## Detect early on that we're running with root permissions!
+if not os.geteuid() == 0:
+        sys.exit('Script must run as root')
 
 ## Should setup the GPIO Pins Here / Import Libs
 import time, os, sys
