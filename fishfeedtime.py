@@ -95,24 +95,23 @@ def run_timer():
     ledswitch("on")
     sound_buzzer()
     sockets("off")
-    count = 0
+    start = time.time()
     # Insert a small time delay to ensure that devices are not immediately switched back on if button is held down.
-    delay = 10
+    delay = 2
     time.sleep(delay)
     fulltime = int(OFFTIME - delay)
     warntime = int(fulltime - WARNTIME)
-    while count <= fulltime:
+    warned = False
+    GPIO.add_event_detect(BUTTON, GPIO.RISING, bouncetime=200)
+    while time.time() - start < fulltime:
         if VERBOSE == True:
             print("Count: " + str(count))
-        if button_state() == "Closed":
+        if GPIO.event_detected(BUTTON):
             if VERBOSE == True:
                 print("Button Push Override Detected.")
+            GPIO.remove_event_detect(BUTTON)
             break
-        if count == fulltime:
-            if VERBOSE == True:
-                print("Duration completed.")
-            break
-        if count == warntime:
+        if time.time() - start > warntime and warned == False:
             if VERBOSE == True:
                 print("Warning Time Reached.")
             sound_buzzer()
@@ -120,26 +119,26 @@ def run_timer():
 	    sound_buzzer()
 	    time.sleep(0.3)
             sound_buzzer()
-            # Increase by 2s, as buzzer takes some time :)
-            count = count + 2
-            time.sleep(1)
+            warned == True
         else:
-            count = count + 1
             time.sleep(1)
 
+    GPIO.remove_event_detect(BUTTON)
     sound_buzzer()
     sockets("on")
     ledswitch("off")
 
 ## Actual run
-# Check stragonanoff exists:
+# Check switchcode exists:
 if not os.path.isfile(switchscript):
     print("Failed to locate " + str(switchscript))
     sys.exit(1)
 try:
     while True:
-        if button_state() == "Closed":
-            run_timer()
+        GPIO.add_event_detect(BUTTON, GPIO.RISING, bouncetime=200)
+        GPIO.wait_for_edge(BUTTON, GPIO.RISING, bouncetime=200)
+        GPIO.remove_event_detect(BUTTON)
+        run_timer()
 except KeyboardInterrupt:
     print("\n\nKeyboard Interrupt. Ensuring sockets are Enabled...")
     sound_buzzer()
