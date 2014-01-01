@@ -6,27 +6,30 @@
 
 ## GPIO Pin Definitions
 # Pin with button circuit GPIO Pullup
-BUTTON = 17
+BUTTON = 25
 # LED Pin if present...
 LED = True
-LEDPIN = 24
+LEDPIN = 11
 # Pin connect to 434MHz transmit Data Line. -- NOT CONFIGURABLE, connect to *** PIN26 // GPIO7 ***
-##TRANS = 18
-# Seconds to turn everything off for on button push:
-OFFTIME = 30
+##TRANS = 7
+# Seconds to turn everything off for on button push: ## 900s = 15mins
+OFFTIME = 900
 # Time (s) before OFFTIME to sound alert.
-WARNTIME = 5
+WARNTIME = 60
 # Do we have a buzzer here?
 BUZZER = True
 # If "True" - which GPIO Pin to use it?
-BUZPIN = 23
+BUZPIN = 8
 # Where can the https://github.com/dmcg/raspberry-strogonanoff script be found?
-switchscript = "./switch"
+switchscript = "~fishfeedtime/fishfeedtime/switch"
 # List of dictionaries detailing channel and buttons for the desired controlled sockets:
-SOCKETS = [ {"socket": "1"}, {"socket": "2"}, {"socket": "3"}, {"socket": "4"} ]
+## Socket 1 controls the two Powerheads.
+## Socket 2 is the Canister Filter
+## Socket 3 is Skimmer
+SOCKETS = [ {"socket": "1"}, {"socket": "2"}, {"socket": "3"} ]
 
 # Set verbosity ## True//False
-VERBOSE = True
+VERBOSE = False
 
 ## Import needed modules
 import time, os, sys
@@ -38,12 +41,12 @@ if not os.geteuid() == 0:
 
 # Setup GPIO
 GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 if BUZZER == True:
     GPIO.setup(BUZPIN, GPIO.OUT, False)
 if LED == True:
     GPIO.setup(LEDPIN, GPIO.OUT, False)
 GPIO.setup(BUTTON, GPIO.IN)
-
 
 def sockets(state):
     if state == "on" or state == "off":
@@ -58,6 +61,11 @@ def sockets(state):
     else:
         print("Invalid state sent to sockets(): " + str(state))
         raise
+
+## Put sockets on initially (Useful if Pi init script is restarted with
+## sockets in an off state.
+print("Initialising: ensuring sockets are ON...")
+sockets("on")
 
 def button_state():
     # If button not pressed (Open)
@@ -92,6 +100,7 @@ def sound_buzzer():
             print("Buzzer not configured.")
 
 def run_timer():
+    print("Feed Time Started")
     ledswitch("on")
     sound_buzzer()
     sockets("off")
@@ -102,10 +111,12 @@ def run_timer():
     fulltime = int(OFFTIME - delay)
     warntime = int(fulltime - WARNTIME)
     warned = False
+    count = 0
     GPIO.add_event_detect(BUTTON, GPIO.RISING, bouncetime=200)
     while time.time() - start < fulltime:
         if VERBOSE == True:
             print("Count: " + str(count))
+            count = count + 1
         if GPIO.event_detected(BUTTON):
             if VERBOSE == True:
                 print("Button Push Override Detected.")
@@ -119,10 +130,11 @@ def run_timer():
 	    sound_buzzer()
 	    time.sleep(0.3)
             sound_buzzer()
-            warned == True
+            warned = True
         else:
             time.sleep(1)
 
+    print("Feed Time Ended.")
     GPIO.remove_event_detect(BUTTON)
     sound_buzzer()
     sockets("on")
@@ -130,13 +142,16 @@ def run_timer():
 
 ## Actual run
 # Check switchcode exists:
-if not os.path.isfile(switchscript):
-    print("Failed to locate " + str(switchscript))
-    sys.exit(1)
+### NEEDS FIXING
+#if not os.path.isfile(switchscript):
+#    print("Failed to locate " + str(switchscript))
+#    sys.exit(1)
+
 try:
     while True:
-        GPIO.add_event_detect(BUTTON, GPIO.RISING, bouncetime=200)
-        GPIO.wait_for_edge(BUTTON, GPIO.RISING, bouncetime=200)
+	print("Listening for feeding time...")
+        #GPIO.add_event_detect(BUTTON, GPIO.RISING, bouncetime=200)
+        GPIO.wait_for_edge(BUTTON, GPIO.RISING)
         GPIO.remove_event_detect(BUTTON)
         run_timer()
 except KeyboardInterrupt:
